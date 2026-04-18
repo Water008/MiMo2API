@@ -5,7 +5,7 @@ import uuid
 import json
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Header, Request
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse
 from .models import (
     OpenAIRequest, OpenAIResponse, OpenAIChoice, OpenAIMessage,
     OpenAIDelta, OpenAIUsage, ParseCurlRequest, TestAccountRequest
@@ -14,7 +14,8 @@ from .config import config_manager, MimoAccount
 from .mimo_client import MimoClient
 from .utils import parse_curl, build_query_from_messages
 
-router = APIRouter()
+api_router = APIRouter()
+admin_router = APIRouter()
 
 
 def validate_api_key(authorization: Optional[str]) -> bool:
@@ -27,7 +28,7 @@ def validate_api_key(authorization: Optional[str]) -> bool:
     return config_manager.validate_api_key(key)
 
 
-@router.post("/v1/chat/completions")
+@api_router.post("/v1/chat/completions")
 async def chat_completions(
     request: OpenAIRequest,
     authorization: Optional[str] = Header(None)
@@ -219,13 +220,13 @@ async def stream_response(client: MimoClient, query: str, thinking: bool, model:
         yield f"data: {json.dumps(error_chunk)}\n\n"
 
 
-@router.get("/api/config")
+@admin_router.get("/api/config")
 async def get_config():
     """获取配置"""
     return config_manager.get_config()
 
 
-@router.post("/api/config")
+@admin_router.post("/api/config")
 async def update_config(request: Request):
     """更新配置"""
     try:
@@ -236,7 +237,7 @@ async def update_config(request: Request):
         raise HTTPException(status_code=400, detail={"error": "invalid"})
 
 
-@router.post("/api/parse-curl")
+@admin_router.post("/api/parse-curl")
 async def parse_curl_command(request: ParseCurlRequest):
     """解析cURL命令"""
     account = parse_curl(request.curl)
@@ -245,7 +246,7 @@ async def parse_curl_command(request: ParseCurlRequest):
     return account.to_dict()
 
 
-@router.post("/api/test-account")
+@admin_router.post("/api/test-account")
 async def test_account(request: TestAccountRequest):
     """测试账号有效性"""
     try:
