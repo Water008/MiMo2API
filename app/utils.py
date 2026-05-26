@@ -75,14 +75,12 @@ def safe_utf8_len(text: str, max_len: int) -> int:
     return max_len
 
 
-def build_query_from_messages(messages: list, max_messages: int = 500, max_content_len: int = 12000) -> tuple:
+def build_query_from_messages(messages: list) -> tuple:
     """
     从消息列表构建查询字符串，并解析特殊标签
 
     Args:
         messages: 消息列表
-        max_messages: 最大消息数量
-        max_content_len: 单条消息最大长度
 
     Returns:
         (查询字符串, 思考状态, 搜索状态)
@@ -103,10 +101,6 @@ def build_query_from_messages(messages: list, max_messages: int = 500, max_conte
         elif "[search=off]" in msg.content:
             web_search = False
 
-    # 只保留最后N条消息用于对话
-    if len(messages) > max_messages:
-        messages = messages[-max_messages:]
-
     query_parts = []
     for msg in messages:
         content = msg.content
@@ -117,9 +111,6 @@ def build_query_from_messages(messages: list, max_messages: int = 500, max_conte
         if not content and msg.role == "system":
             continue
 
-        # 截断过长的内容
-        if len(content) > max_content_len:
-            content = content[:max_content_len] + "..."
         query_parts.append(f"{msg.role}: {content}")
 
     return "\n".join(query_parts), thinking, web_search
