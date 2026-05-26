@@ -1,5 +1,6 @@
 """Mimo API客户端"""
 
+import os
 import json
 import uuid
 import httpx
@@ -18,13 +19,16 @@ class MimoClient:
 
     def _create_headers(self) -> dict:
         """创建请求头"""
+        ua = os.getenv("MIMO_USER_AGENT", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Mobile Safari/537.36")
+        tz = os.getenv("MIMO_TIMEZONE", "Asia/Dhaka")
+
         return {
             "Accept": "*/*",
             "Content-Type": "application/json",
             "Origin": "https://aistudio.xiaomimimo.com",
             "Referer": "https://aistudio.xiaomimimo.com/",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-            "x-timezone": "Asia/Shanghai",
+            "User-Agent": ua,
+            "x-timezone": tz,
         }
 
     def _create_cookies(self) -> dict:

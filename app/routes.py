@@ -44,10 +44,17 @@ async def chat_completions(
         raise HTTPException(status_code=503, detail={"error": {"message": "no mimo account"}})
 
     # 构建查询字符串，并解析标签
-    query, tag_thinking, web_search = build_query_from_messages(request.messages)
+    query, tag_thinking, tag_search = build_query_from_messages(request.messages)
 
-    # 判断是否启用深度思考 (兼容 reasoning_effort 参数或 [think=on] 标签)
-    thinking = bool(request.reasoning_effort) or tag_thinking
+    # 判断是否启用深度思考 (标签优先级最高)
+    thinking = False
+    if tag_thinking is not None:
+        thinking = tag_thinking
+    elif request.reasoning_effort:
+        thinking = True
+
+    # 判断是否启用搜索
+    web_search = bool(tag_search)
 
     # 创建Mimo客户端
     client = MimoClient(account)

@@ -75,7 +75,7 @@ def safe_utf8_len(text: str, max_len: int) -> int:
     return max_len
 
 
-def build_query_from_messages(messages: list, max_messages: int = 10, max_content_len: int = 4000) -> tuple:
+def build_query_from_messages(messages: list, max_messages: int = 50, max_content_len: int = 4000) -> tuple:
     """
     从消息列表构建查询字符串，并解析特殊标签
 
@@ -85,17 +85,23 @@ def build_query_from_messages(messages: list, max_messages: int = 10, max_conten
         max_content_len: 单条消息最大长度
 
     Returns:
-        (查询字符串, 是否开启思考, 是否开启搜索)
+        (查询字符串, 思考状态, 搜索状态)
+        状态: True=on, False=off, None=未指定
     """
-    thinking = False
-    web_search = False
+    thinking = None
+    web_search = None
 
     # 检查所有消息（特别是system消息）中的标签
     for msg in messages:
         if "[think=on]" in msg.content:
             thinking = True
+        elif "[think=off]" in msg.content:
+            thinking = False
+
         if "[search=on]" in msg.content:
             web_search = True
+        elif "[search=off]" in msg.content:
+            web_search = False
 
     # 只保留最后N条消息用于对话
     if len(messages) > max_messages:
@@ -105,7 +111,8 @@ def build_query_from_messages(messages: list, max_messages: int = 10, max_conten
     for msg in messages:
         content = msg.content
         # 移除控制标签，避免发送给AI
-        content = content.replace("[think=on]", "").replace("[search=on]", "").strip()
+        content = content.replace("[think=on]", "").replace("[think=off]", "") \
+                         .replace("[search=on]", "").replace("[search=off]", "").strip()
 
         if not content and msg.role == "system":
             continue
