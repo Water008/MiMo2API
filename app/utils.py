@@ -75,28 +75,42 @@ def safe_utf8_len(text: str, max_len: int) -> int:
     return max_len
 
 
-def build_query_from_messages(messages: list, max_messages: int = 10, max_content_len: int = 4000) -> str:
+def build_query_from_messages(messages: list) -> tuple:
     """
-    从消息列表构建查询字符串
+    从消息列表构建查询字符串，并解析特殊标签
 
     Args:
         messages: 消息列表
-        max_messages: 最大消息数量
-        max_content_len: 单条消息最大长度
 
     Returns:
-        查询字符串
+        (查询字符串, 思考状态, 搜索状态)
+        状态: True=on, False=off, None=未指定
     """
-    # 只保留最后N条消息
-    if len(messages) > max_messages:
-        messages = messages[-max_messages:]
+    thinking = None
+    web_search = None
+
+    # 检查所有消息（特别是system消息）中的标签
+    for msg in messages:
+        if "[think=on]" in msg.content:
+            thinking = True
+        elif "[think=off]" in msg.content:
+            thinking = False
+
+        if "[search=on]" in msg.content:
+            web_search = True
+        elif "[search=off]" in msg.content:
+            web_search = False
 
     query_parts = []
     for msg in messages:
         content = msg.content
-        # 截断过长的内容
-        if len(content) > max_content_len:
-            content = content[:max_content_len] + "..."
+        # 移除控制标签，避免发送给AI
+        content = content.replace("[think=on]", "").replace("[think=off]", "") \
+                         .replace("[search=on]", "").replace("[search=off]", "").strip()
+
+        if not content and msg.role == "system":
+            continue
+
         query_parts.append(f"{msg.role}: {content}")
 
-    return "\n".join(query_parts)
+    return "\n".join(query_parts), thinking, web_search
