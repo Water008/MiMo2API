@@ -1,5 +1,6 @@
 """配置管理模块"""
 
+import os
 import json
 import threading
 from pathlib import Path
@@ -39,7 +40,15 @@ class ConfigManager:
     """配置管理器 - 线程安全"""
 
     def __init__(self, config_file: str = "config.json"):
-        self.config_file = Path(config_file)
+        # 获取数据目录
+        data_dir = os.getenv("DATA_DIR")
+        if not data_dir:
+            if os.path.exists("/data") and os.access("/data", os.W_OK):
+                data_dir = "/data"
+            else:
+                data_dir = "."
+
+        self.config_file = Path(data_dir) / config_file
         self.config = Config()
         self.lock = threading.RLock()
         self.account_idx = 0

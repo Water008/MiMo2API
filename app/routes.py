@@ -43,11 +43,11 @@ async def chat_completions(
     if not account:
         raise HTTPException(status_code=503, detail={"error": {"message": "no mimo account"}})
 
-    # 构建查询字符串
-    query = build_query_from_messages(request.messages)
+    # 构建查询字符串，并解析标签
+    query, tag_thinking, web_search = build_query_from_messages(request.messages)
 
-    # 判断是否启用深度思考
-    thinking = bool(request.reasoning_effort)
+    # 判断是否启用深度思考 (兼容 reasoning_effort 参数或 [think=on] 标签)
+    thinking = bool(request.reasoning_effort) or tag_thinking
 
     # 创建Mimo客户端
     client = MimoClient(account)
@@ -55,13 +55,13 @@ async def chat_completions(
     # 流式响应
     if request.stream:
         return StreamingResponse(
-            stream_response(client, query, thinking, request.model),
+            stream_response(client, query, thinking, request.model, web_search),
             media_type="text/event-stream"
         )
 
     # 非流式响应
     try:
-        content, think_content, usage = await client.call_api(query, thinking)
+        content, think_content, usage = await client.call_api(query, thinking, request.model, web_search)
 
         # 如果有思考内容，拼接到回复前面
         full_content = content
@@ -93,7 +93,7 @@ async def chat_completions(
         raise HTTPException(status_code=500, detail={"error": {"message": str(e)}})
 
 
-async def stream_response(client: MimoClient, query: str, thinking: bool, model: str):
+async def stream_response(client: MimoClient, query: str, thinking: bool, model: str, web_search: bool = False):
     """流式响应生成器"""
 
     msg_id = f"chatcmpl-{uuid.uuid4().hex[:24]}"
@@ -105,7 +105,7 @@ async def stream_response(client: MimoClient, query: str, thinking: bool, model:
     in_think = False
 
     try:
-        async for sse_data in client.stream_api(query, thinking):
+        async for sse_data in client.stream_api(query, thinking, model, web_search):
             content = sse_data.get("content", "")
             if not content:
                 continue
