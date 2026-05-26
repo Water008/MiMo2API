@@ -75,7 +75,7 @@ def safe_utf8_len(text: str, max_len: int) -> int:
     return max_len
 
 
-def build_query_from_messages(messages: list, max_messages: int = 50, max_content_len: int = 4000) -> tuple:
+def build_query_from_messages(messages: list, max_messages: int = 500, max_content_len: int = 12000) -> tuple:
     """
     从消息列表构建查询字符串，并解析特殊标签
 
