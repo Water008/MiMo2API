@@ -293,10 +293,14 @@
         </div>
 
         <div class="card fade-in">
-            <h2>API Keys</h2>
+            <h2>基本配置</h2>
             <div class="input-group">
-                <label class="input-label">多个 Key 用逗号分隔</label>
+                <label class="input-label">API Keys (多个 Key 用逗号分隔)</label>
                 <input type="text" id="apiKeys" placeholder="sk-key1, sk-key2, sk-key3">
+            </div>
+            <div class="input-group">
+                <label class="input-label">管理员密码 (登录页面的密码)</label>
+                <input type="password" id="adminPassword" placeholder="设置新的管理员密码">
             </div>
             <button class="btn-primary" onclick="saveKeys()">保存配置</button>
         </div>
@@ -325,11 +329,12 @@
     </div>
 
     <script>
-        let cfg = { api_keys: '', mimo_accounts: [] }, parsed = null;
+        let cfg = { api_keys: '', admin_password: '', mimo_accounts: [] }, parsed = null;
 
         async function load() {
             cfg = await (await fetch('/api/config')).json();
             document.getElementById('apiKeys').value = cfg.api_keys || '';
+            document.getElementById('adminPassword').value = cfg.admin_password || '';
             render();
         }
 
@@ -352,13 +357,14 @@
 
         async function saveKeys() {
             cfg.api_keys = document.getElementById('apiKeys').value;
+            cfg.admin_password = document.getElementById('adminPassword').value || 'admin';
             await fetch('/api/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(cfg)
             });
-            showStatus('parseResult', 'success', '配置已保存');
-            setTimeout(() => document.getElementById('parseResult').innerHTML = '', 2000);
+            showStatus('parseResult', 'success', '配置已保存 (如修改了密码，刷新页面后需用新密码登录)');
+            setTimeout(() => document.getElementById('parseResult').innerHTML = '', 4000);
         }
 
         async function parse() {

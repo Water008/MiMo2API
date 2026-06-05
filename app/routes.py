@@ -4,7 +4,7 @@ import time
 import uuid
 import json
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Header, Request
+from fastapi import APIRouter, HTTPException, Header, Request, Depends
 from fastapi.responses import StreamingResponse, JSONResponse
 from .models import (
     OpenAIRequest, OpenAIResponse, OpenAIChoice, OpenAIMessage,
@@ -13,6 +13,7 @@ from .models import (
 from .config import config_manager, MimoAccount
 from .mimo_client import MimoClient
 from .utils import parse_curl, build_query_from_messages
+from .auth import verify_admin
 
 router = APIRouter()
 
@@ -220,13 +221,13 @@ async def stream_response(client: MimoClient, query: str, thinking: bool, model:
 
 
 @router.get("/api/config")
-async def get_config():
+async def get_config(username: str = Depends(verify_admin)):
     """获取配置"""
     return config_manager.get_config()
 
 
 @router.post("/api/config")
-async def update_config(request: Request):
+async def update_config(request: Request, username: str = Depends(verify_admin)):
     """更新配置"""
     try:
         new_config = await request.json()
@@ -237,7 +238,7 @@ async def update_config(request: Request):
 
 
 @router.post("/api/parse-curl")
-async def parse_curl_command(request: ParseCurlRequest):
+async def parse_curl_command(request: ParseCurlRequest, username: str = Depends(verify_admin)):
     """解析cURL命令"""
     account = parse_curl(request.curl)
     if not account:
@@ -246,7 +247,7 @@ async def parse_curl_command(request: ParseCurlRequest):
 
 
 @router.post("/api/test-account")
-async def test_account(request: TestAccountRequest):
+async def test_account(request: TestAccountRequest, username: str = Depends(verify_admin)):
     """测试账号有效性"""
     try:
         account = MimoAccount(

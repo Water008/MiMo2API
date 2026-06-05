@@ -22,6 +22,7 @@ class MimoAccount:
 class Config:
     """应用配置"""
     api_keys: str = "sk-default"
+    admin_password: str = "admin"
     mimo_accounts: List[MimoAccount] = None
 
     def __post_init__(self):
@@ -31,6 +32,7 @@ class Config:
     def to_dict(self):
         return {
             "api_keys": self.api_keys,
+            "admin_password": self.admin_password,
             "mimo_accounts": [acc.to_dict() for acc in self.mimo_accounts]
         }
 
@@ -59,6 +61,7 @@ class ConfigManager:
                 ]
                 self.config = Config(
                     api_keys=data.get('api_keys', 'sk-default'),
+                    admin_password=data.get('admin_password', 'admin'),
                     mimo_accounts=accounts
                 )
         except Exception as e:
@@ -98,6 +101,7 @@ class ConfigManager:
             ]
             self.config = Config(
                 api_keys=new_config.get('api_keys', 'sk-default'),
+                admin_password=new_config.get('admin_password', 'admin'),
                 mimo_accounts=accounts
             )
             self.save()
