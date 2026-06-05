@@ -15,7 +15,8 @@ from .mimo_client import MimoClient
 from .utils import parse_curl, build_query_from_messages
 from .auth import verify_admin
 
-router = APIRouter()
+api_router = APIRouter()
+admin_router = APIRouter()
 
 
 def validate_api_key(authorization: Optional[str]) -> bool:
@@ -28,7 +29,7 @@ def validate_api_key(authorization: Optional[str]) -> bool:
     return config_manager.validate_api_key(key)
 
 
-@router.post("/v1/chat/completions")
+@api_router.post("/v1/chat/completions")
 async def chat_completions(
     request: OpenAIRequest,
     authorization: Optional[str] = Header(None)
