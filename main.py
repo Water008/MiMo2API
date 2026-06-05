@@ -7,8 +7,10 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
-from app.routes import api_router, admin_router
+from fastapi import Depends
+from app.routes import router
 from app.config import config_manager
+from app.auth import verify_admin
 
 # 创建管理应用
 admin_app = FastAPI(
@@ -40,8 +42,8 @@ api_app.include_router(api_router)
 web_dir = Path(__file__).parent / "web"
 
 # 提供管理界面
-@admin_app.get("/")
-async def serve_admin():
+@app.get("/")
+async def serve_admin(username: str = Depends(verify_admin)):
     """提供管理界面"""
     index_file = web_dir / "index.html"
     if index_file.exists():
