@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -289,41 +289,41 @@
     <div class="container">
         <div class="header">
             <h1>MiMo2API</h1>
-            <p>小米 MiMo 模型 OpenAI 兼容 API</p>
+            <p>Xiaomi MiMo to OpenAI Compatible API</p>
         </div>
 
         <div class="card fade-in">
-            <h2>基本配置</h2>
+            <h2>Configuration</h2>
             <div class="input-group">
-                <label class="input-label">API Keys (多个 Key 用逗号分隔)</label>
+                <label class="input-label">API Keys (Comma-separated for multiple keys)</label>
                 <input type="text" id="apiKeys" placeholder="sk-key1, sk-key2, sk-key3">
             </div>
             <div class="input-group">
-                <label class="input-label">管理员密码 (登录页面的密码)</label>
-                <input type="password" id="adminPassword" placeholder="设置新的管理员密码">
+                <label class="input-label">Admin Password (Login password for this UI)</label>
+                <input type="password" id="adminPassword" placeholder="Set a new admin password">
             </div>
-            <button class="btn-primary" onclick="saveKeys()">保存配置</button>
+            <button class="btn-primary" onclick="saveKeys()">Save Settings</button>
         </div>
 
         <div class="card fade-in" style="animation-delay: 0.1s">
-            <h2>添加账号</h2>
+            <h2>Add Account</h2>
             <details>
-                <summary>如何获取凭证?</summary>
+                <summary>How to get credentials?</summary>
                 <ol>
-                    <li>登录 <a href="https://aistudio.xiaomimimo.com" target="_blank">aistudio.xiaomimimo.com</a></li>
-                    <li>打开浏览器开发者工具 (F12) → Network 标签</li>
-                    <li>发送一条消息，找到 <code>chat</code> 请求</li>
-                    <li>右键请求 → Copy as cURL</li>
-                    <li>粘贴到下方输入框</li>
+                    <li>Log into <a href="https://aistudio.xiaomimimo.com" target="_blank">aistudio.xiaomimimo.com</a></li>
+                    <li>Open Developer Tools (F12) → Network tab</li>
+                    <li>Send a message and locate the <code>chat</code> request</li>
+                    <li>Right click the request → Copy as cURL</li>
+                    <li>Paste the cURL command in the box below</li>
                 </ol>
             </details>
             <textarea id="curl" placeholder="curl 'https://aistudio.xiaomimimo.com/open-apis/bot/chat...'"></textarea>
-            <button class="btn-primary" onclick="parse()">解析 cURL</button>
+            <button class="btn-primary" onclick="parse()">Parse cURL</button>
             <div id="parseResult"></div>
         </div>
 
         <div class="card fade-in" style="animation-delay: 0.2s">
-            <h2>已配置账号</h2>
+            <h2>Configured Accounts</h2>
             <div id="accounts" class="account-list"></div>
         </div>
     </div>
@@ -347,11 +347,11 @@
                             <div class="account-avatar">${a.user_id.slice(-2)}</div>
                             <span class="account-id">ID: ${a.user_id}</span>
                         </div>
-                        <button class="btn-danger" onclick="del(${i})">删除</button>
+                        <button class="btn-danger" onclick="del(${i})">Delete</button>
                     </div>
                 `).join('');
             } else {
-                d.innerHTML = '<div class="empty">暂无配置账号</div>';
+                d.innerHTML = '<div class="empty">No accounts configured</div>';
             }
         }
 
@@ -363,48 +363,48 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(cfg)
             });
-            showStatus('parseResult', 'success', '配置已保存 (如修改了密码，刷新页面后需用新密码登录)');
+            showStatus('parseResult', 'success', 'Settings saved (if password changed, refresh and login again)');
             setTimeout(() => document.getElementById('parseResult').innerHTML = '', 4000);
         }
 
         async function parse() {
             const curl = document.getElementById('curl').value;
             if (!curl.trim()) {
-                showStatus('parseResult', 'error', '请输入 cURL 命令');
+                showStatus('parseResult', 'error', 'Please enter a cURL command');
                 return;
             }
-            showStatus('parseResult', 'loading', '解析中...');
+            showStatus('parseResult', 'loading', 'Parsing...');
             const r = await fetch('/api/parse-curl', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ curl })
             });
             if (!r.ok) {
-                showStatus('parseResult', 'error', '解析失败，请检查 cURL 格式');
+                showStatus('parseResult', 'error', 'Parse failed, check cURL format');
                 return;
             }
             parsed = await r.json();
             document.getElementById('parseResult').innerHTML = `
-                <div class="status success">解析成功 - ID: ${parsed.user_id}</div>
+                <div class="status success">Parse successful - ID: ${parsed.user_id}</div>
                 <div class="btn-group" style="margin-top: 12px">
-                    <button class="btn-outline" onclick="test()">测试连接</button>
-                    <button class="btn-success" onclick="save()">添加账号</button>
+                    <button class="btn-outline" onclick="test()">Test Connection</button>
+                    <button class="btn-success" onclick="save()">Add Account</button>
                 </div>
                 <div id="testR"></div>
             `;
         }
 
         async function test() {
-            showStatus('testR', 'loading', '测试中...');
+            showStatus('testR', 'loading', 'Testing...');
             const r = await (await fetch('/api/test-account', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(parsed)
             })).json();
             if (r.success) {
-                showStatus('testR', 'success', '连接成功: ' + r.response.slice(0, 50));
+                showStatus('testR', 'success', 'Connection successful: ' + r.response.slice(0, 50));
             } else {
-                showStatus('testR', 'error', '连接失败: ' + r.error);
+                showStatus('testR', 'error', 'Connection failed: ' + r.error);
             }
         }
 
@@ -419,12 +419,12 @@
             });
             parsed = null;
             document.getElementById('curl').value = '';
-            showStatus('parseResult', 'success', '账号已添加');
+            showStatus('parseResult', 'success', 'Account added');
             load();
         }
 
         async function del(i) {
-            if (!confirm('确定要删除此账号吗?')) return;
+            if (!confirm('Are you sure you want to delete this account?')) return;
             cfg.mimo_accounts.splice(i, 1);
             await fetch('/api/config', {
                 method: 'POST',

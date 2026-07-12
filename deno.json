@@ -1,0 +1,12 @@
+{
+  "tasks": {
+    "start": "deno run -A src/main.ts",
+    "dev": "deno run -A --watch src/main.ts"
+  },
+  "imports": {
+    "hono": "npm:hono@^4.0.0"
+  },
+  "compilerOptions": {
+    "strict": true
+  }
+}
